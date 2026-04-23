@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disaster Prediction Dashboard</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="brand">
+                <h1>IN- RiskPrediction</h1>
+            </div>
+            
+            <div class="search-box">
+                <input type="text" id="loc-search" placeholder="Search by city/state in India...">
+                <button id="search-btn">🔍 Search</button>
+            </div>
+            
+            <div class="user-profile">
+                <span>Welcome, <strong>{{ username }}</strong></span>
+            </div>
+        </header>
+
+        <div class="main-body">
+            <!-- Left Sidebar -->
+            <aside class="sidebar-left">
+                <div class="control-box">
+                    <h3>Prediction Parameters</h3>
+                    
+                    <div class="input-group">
+                        <label>Select Year</label>
+                        <select id="sim-year">
+                            <!-- JS loop will populate 2015-2027 -->
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Select Month</label>
+                        <select id="sim-month">
+                            <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option>
+                            <option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option>
+                            <option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option>
+                            <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Disaster Type</label>
+                        <select id="sim-disaster">
+                            <option value="ALL">ALL DISASTERS</option>
+                            <option value="Flood">Flood</option>
+                            <option value="Earthquake">Earthquake</option>
+                            <option value="Cyclone">Cyclone</option>
+                            <option value="Drought">Drought</option>
+                            <option value="Tsunami">Tsunami</option>
+                            <option value="Landslide">Landslide</option>
+                            <option value="Heatwave">Heatwave</option>
+                            <option value="Cold wave">Cold wave</option>
+                            <option value="Avalanche">Avalanche</option>
+                            <option value="Storm">Storm</option>
+                            <option value="Urban Flooding">Urban Flooding</option>
+                            <option value="Rainfall">Rainfall</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="legend-box mt-auto">
+                    <!-- Risk Section -->
+                    <div style="margin-bottom: 20px;">
+                        <h4>Risk Legend</h4>
+                        <ul>
+                            <li><span class="color-dot" style="background:#8b0000;"></span> Very High</li>
+                            <li><span class="color-dot" style="background:#ff0000;"></span> High</li>
+                            <li><span class="color-dot" style="background:#ffa500;"></span> Medium</li>
+                            <li><span class="color-dot" style="background:#008000;"></span> Low</li>
+                            <li><span class="color-dot" style="background:#0000ff;"></span> Very Low</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Temp Section -->
+                    <div>
+                        <h4>Temperature Legend</h4>
+                        <ul>
+                            <li><span class="color-dot" style="background:#ff0000;"></span> Extreme (&gt; 40°C)</li>
+                            <li><span class="color-dot" style="background:#ffa500;"></span> Hot (30°C - 40°C)</li>
+                            <li><span class="color-dot" style="background:#fbbf24;"></span> Warm (20°C - 30°C)</li>
+                            <li><span class="color-dot" style="background:#10b981;"></span> Normal (10°C - 20°C)</li>
+                            <li><span class="color-dot" style="background:#3b82f6;"></span> Cold (&lt; 10°C)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="sidebar-footer">
+                    <button id="about-btn" class="text-btn">ℹ️ About System</button>
+                    <a href="{{ url_for('logout') }}" class="signout-btn">⎋ Sign Out</a>
+                </div>
+            </aside>
+
+            <!-- Center Map -->
+            <main class="map-container relative">
+                <div id="loader" class="glass-loader" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Predicting Risks...</p>
+                </div>
+                <div id="map"></div>
+            </main>
+
+            <!-- Right Summary Panel -->
+            <aside class="sidebar-right">
+                <div class="summary-header">
+                    <h2>Region Analysis</h2>
+                    <p id="sel-region">Select a marker on the map...</p>
+                </div>
+
+                <div id="summary-content" style="opacity: 0.3; pointer-events: none;">
+                    <!-- Confidence Score -->
+                    <div class="confidence-box">
+                        <div class="conf-circle">
+                            <span id="conf-val">85%</span>
+                        </div>
+                        <p>Model Confidence</p>
+                    </div>
+
+                    <!-- Smart Message -->
+                    <div class="smart-message" id="smart-msg">
+                        <!-- Filled by JS -->
+                    </div>
+
+                    <!-- Chart -->
+                    <div class="chart-container">
+                        <canvas id="riskChart"></canvas>
+                    </div>
+
+                    <!-- Environmental Factors -->
+                    <div class="reasons-box">
+                        <h4>Environmental Predictors</h4>
+                        <ul id="reason-list">
+                            <!-- Filled by JS -->
+                        </ul>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- About Modal -->
+    <div id="about-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>About IN- RiskPrediction</h2>
+            <p>This dashboard uses machine learning and geospatial analysis to predict disaster risks across India. It helps users make informed travel and safety decisions by analyzing historical data and environmental patterns.</p>
+            <p><strong>Model Used:</strong> Random Forest Classifier (Sci-kit Learn)</p>
+            <p><strong>Dataset:</strong> 10 years of simulated historical climatic and geographic data (2015-2025).</p>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

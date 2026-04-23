@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - IN- RiskPrediction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-body">
+    <div class="auth-container admin-panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2>🛠️ Admin Setup</h2>
+            <a href="{{ url_for('logout') }}" class="btn" style="padding:8px 12px; font-size:12px; background:#475569;">Sign Out</a>
+        </div>
+        
+        <p style="margin-bottom:20px; color:#94a3b8; font-size:14px;">Upload updated CSV dataset (2015-2025) to retrain the Random Forest ML Model.</p>
+        
+        <div class="input-group">
+            <input type="file" id="csv-file" accept=".csv" class="file-input">
+        </div>
+        
+        <button id="train-btn" class="btn">Upload & Retrain Model</button>
+        
+        <div id="train-results" style="display:none; margin-top:20px; padding:15px; border-radius:8px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2); color:#34d399;">
+            <!-- Output goes here -->
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('train-btn').addEventListener('click', async () => {
+            const fileInput = document.getElementById('csv-file');
+            const resultsBox = document.getElementById('train-results');
+            
+            if(!fileInput.files[0]) {
+                alert("Please select a file first.");
+                return;
+            }
+            
+            resultsBox.style.display = 'block';
+            resultsBox.style.color = '#fbbf24';
+            resultsBox.innerHTML = 'Uploading and retraining ML model... This may take a moment.';
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            try {
+                const response = await fetch('/train_model', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultsBox.style.color = '#34d399';
+                    resultsBox.innerHTML = `✅ Model successfully trained!<br><strong>Accuracy: ${data.accuracy}%</strong>`;
+                } else {
+                    resultsBox.style.color = '#ef4444';
+                    resultsBox.innerHTML = `❌ Error: ${data.error}`;
+                }
+            } catch (err) {
+                resultsBox.style.color = '#ef4444';
+                resultsBox.innerHTML = `❌ Fatal Error tracking API.`;
+            }
+        });
+    </script>
+</body>
+</html>

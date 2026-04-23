@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - IN- RiskPrediction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="auth-body">
+    
+    <div class="auth-wrapper">
+        <h2 class="auth-title">Sign in to your account</h2>
+        
+        <div class="auth-card">
+            {% if error %}
+            <div class="error-box">{{ error }}</div>
+            {% endif %}
+            {% if request.args.get('registered') %}
+            <div class="success-box">Registration Successful! Please login.</div>
+            {% endif %}
+            
+            <form method="POST" action="{{ url_for('login') }}">
+                <!-- Role Toggle Buttons replacing the select dropdown -->
+                <div class="role-toggles">
+                    <button type="button" class="role-btn active" onclick="setRole('user', this)">Guest/User</button>
+                    <button type="button" class="role-btn font-admin" onclick="setRole('admin', this)">Administrator</button>
+                </div>
+                
+                <input type="hidden" name="role_type" id="role_type" value="user">
+
+                <div class="input-block">
+                    <label>Email or Phone NO. / Username</label>
+                    <input type="text" name="username" placeholder="kkabc123@gmail.com" required>
+                </div>
+                
+                <div class="input-block">
+                    <label>Password</label>
+                    <input type="password" name="password" placeholder="••••••••" required>
+                </div>
+                
+                <button type="submit" class="submit-btn">Sign In</button>
+            </form>
+            
+            <div class="auth-footer-text">
+                Don't have an account? <a href="{{ url_for('register') }}">Register Here</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setRole(role, btnEl) {
+            document.getElementById('role_type').value = role;
+            document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
+            btnEl.classList.add('active');
+        }
+    </script>
+</body>
+</html>

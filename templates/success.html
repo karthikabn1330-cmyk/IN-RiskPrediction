@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Successful</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script>
+        // Redirect to dashboard after 2 seconds
+        setTimeout(function() {
+            window.location.href = "{{ url_for('admin') if role == 'admin' else url_for('dashboard') }}";
+        }, 1500);
+    </script>
+</head>
+<body class="auth-body">
+    <div class="auth-container" style="text-align: center;">
+        <div class="success-icon">✓</div>
+        <h2 style="margin-top: 20px;">Login Successful</h2>
+        <p>Welcome back! Diverting you to the Dashboard...</p>
+        <div class="spinner"></div>
+    </div>
+</body>
+</html>

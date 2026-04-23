@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - IN- RiskPrediction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="auth-body">
+    
+    <div class="auth-wrapper">
+        <h2 class="auth-title">Create your account</h2>
+        
+        <div class="auth-card">
+            {% if error %}
+            <div class="error-box">{{ error }}</div>
+            {% endif %}
+            
+            <form method="POST" action="{{ url_for('register') }}">
+                
+                <div class="input-block">
+                    <label>Full Name</label>
+                    <input type="text" name="full_name" placeholder="John Doe" required>
+                </div>
+
+                <div class="input-block">
+                    <label>Email or Phone NO.</label>
+                    <input type="text" name="username" placeholder="kkabc123@gmail.com" required>
+                </div>
+
+                <div class="input-block">
+                    <label>Password</label>
+                    <input type="password" name="password" placeholder="••••••••" required>
+                </div>
+                
+                <div class="input-block">
+                    <label>Address</label>
+                    <input type="text" name="address" placeholder="Home/Base address" required>
+                </div>
+                
+                <button type="submit" class="submit-btn" style="margin-top: 10px;">Complete Registration</button>
+            </form>
+            
+            <div class="auth-footer-text" style="text-align: right; margin-top: 15px;">
+                <a href="{{ url_for('login') }}" style="color: #94a3b8;">&larr; Back to Login</a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
