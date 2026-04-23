@@ -12,9 +12,10 @@ app = Flask(__name__)
 app.secret_key = 'ai-disaster-prediction-secret'
 CORS(app)
 
-DB_FILE = "users.db"
-MODEL_PATH = "models/rf_model.pkl"
-ENCODERS_PATH = "models/encoders.pkl"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_FILE = os.path.join(BASE_DIR, "users.db")
+MODEL_PATH = os.path.join(BASE_DIR, "models", "rf_model.pkl")
+ENCODERS_PATH = os.path.join(BASE_DIR, "models", "encoders.pkl")
 
 def init_db():
     conn = sqlite3.connect(DB_FILE)
@@ -150,7 +151,7 @@ def get_disaster_data():
     if search_name and search_lat and search_lng:
         try:
             # Query the highly-detailed Indian micro-regions dataset built from user's global worldcitiespop DB
-            wc_df = pd.read_csv("indian_cities.csv")
+            wc_df = pd.read_csv(os.path.join(BASE_DIR, "indian_cities.csv"))
             
             wc_df['Latitude'] = pd.to_numeric(wc_df['Latitude'], errors='coerce')
             wc_df['Longitude'] = pd.to_numeric(wc_df['Longitude'], errors='coerce')
