@@ -1,6 +1,5 @@
 import os
 import sqlite3
-import pandas as pd
 import numpy as np
 import pickle
 import math
@@ -151,25 +150,25 @@ def get_disaster_data():
     cities = []
     if search_name and search_lat and search_lng:
         try:
-            # Query the highly-detailed Indian micro-regions dataset built from user's global worldcitiespop DB
-            wc_df = pd.read_csv(os.path.join(BASE_DIR, "indian_cities.csv"))
-            
-            wc_df['Latitude'] = pd.to_numeric(wc_df['Latitude'], errors='coerce')
-            wc_df['Longitude'] = pd.to_numeric(wc_df['Longitude'], errors='coerce')
-            wc_df = wc_df.dropna(subset=['Latitude', 'Longitude'])
-            
-            # Calculate strict geographic proximity
-            wc_df['dist'] = ((wc_df['Latitude'] - search_lat)**2 + (wc_df['Longitude'] - search_lng)**2)
-            
-            # Fetch the authenticated regions. Massive 80 point allocation for state grids, 20 for localized districts
+            import csv
             fetch_limit = 80 if is_state in ['true', 'True'] else 20
-            local_cities = wc_df.sort_values(by='dist').head(fetch_limit)
-            
-            for _, row in local_cities.iterrows():
-                # Clean up capitalization for standard English UI
-                clean_name = str(row['AccentCity']).title()
-                if clean_name.lower() != 'nan':
-                    cities.append({"name": clean_name, "lat": row['Latitude'], "lng": row['Longitude'], "type": "Urban"})
+            with open(os.path.join(BASE_DIR, "indian_cities.csv"), 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                temp_cities = []
+                for row in reader:
+                    try:
+                        lat_val = float(row['Latitude'])
+                        lng_val = float(row['Longitude'])
+                        dist = (lat_val - search_lat)**2 + (lng_val - search_lng)**2
+                        temp_cities.append((row['AccentCity'], lat_val, lng_val, dist))
+                    except:
+                        continue
+                
+                temp_cities.sort(key=lambda x: x[3])
+                for c in temp_cities[:fetch_limit]:
+                    clean_name = str(c[0]).title()
+                    if clean_name.lower() != 'nan':
+                        cities.append({"name": clean_name, "lat": c[1], "lng": c[2], "type": "Urban"})
                     
         except Exception as e:
             print("ERROR IN GETTING REAL CITIES:", e)
@@ -262,12 +261,10 @@ def get_disaster_data():
                 dis_enc = le_dis.transform([dtype])[0] if dtype in le_dis.classes_ else 0
                 reg_enc = le_reg.transform([city_type])[0] if city_type in le_reg.classes_ else 0
                 
-                X_pred = pd.DataFrame([{
-                    'year': year, 'month': month, 'location_enc': loc_enc,
-                    'latitude': city["lat"], 'longitude': city["lng"],
-                    'rainfall': rainfall, 'temperature': temperature,
-                    'disaster_enc': dis_enc, 'frequency': freq, 'region_enc': reg_enc
-                }])
+                # Bypassing Pandas DataFrame to strip 130MB from the serverless cloud boot limit
+                # We simply load the values in the exact positional order the ML model expects:
+                # 'year', 'month', 'location_enc', 'latitude', 'longitude', 'rainfall', 'temperature', 'disaster_enc', 'frequency', 'region_enc'
+                X_pred = [[year, month, loc_enc, city["lat"], city["lng"], rainfall, temperature, dis_enc, freq, reg_enc]]
                 
                 risk_pred = rf_model.predict(X_pred)[0]
                 confidence = max(rf_model.predict_proba(X_pred)[0]) * 100
