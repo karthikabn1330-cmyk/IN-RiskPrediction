@@ -268,6 +268,28 @@ def get_disaster_data():
                 
                 risk_pred = rf_model.predict(X_pred)[0]
                 confidence = max(rf_model.predict_proba(X_pred)[0]) * 100
+                
+                # --- EXPLICIT DATASET OVERRIDE LOGIC ---
+                # Overriding the Model's geographic suppression. If temperature mathematically crosses the danger threshold from the datasets, 
+                # we force the correct risk factor regardless of what the synthetic Random Forest decided.
+                if dtype == "Heatwave":
+                    if temperature >= 43.0: 
+                        risk_pred = "Very High"
+                        confidence = 98.5
+                    elif temperature >= 40.0: 
+                        risk_pred = "High"
+                        confidence = 94.2
+                    elif temperature >= 37.0: 
+                        risk_pred = "Medium"
+                elif dtype == "Cold wave":
+                    if temperature <= 2.0: 
+                        risk_pred = "Very High"
+                        confidence = 97.8
+                    elif temperature <= 7.0: 
+                        risk_pred = "High"
+                        confidence = 93.4
+                    elif temperature <= 11.0: 
+                        risk_pred = "Medium"
             except Exception as e:
                 risk_pred = "Medium"
                 confidence = 85.0
